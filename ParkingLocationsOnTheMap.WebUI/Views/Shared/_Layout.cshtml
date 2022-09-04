@@ -11,7 +11,7 @@
 
     <title>@ViewData["Title"] - Parking Locations  On The Map Web UI</title>
 
-
+    <link href="~/css/site.css" rel="stylesheet" />
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
@@ -24,6 +24,7 @@
 </head>
 
 <body id="page-top" class="">
+    <div id="loader" style="display:none;"></div>
     <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -54,12 +55,12 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-               Maps
+                Maps
             </div>
 
             <!-- Nav Item - Charts -->
             <li class="nav-item">
-                <a class="nav-link" href="charts.html">
+                <a class="nav-link" href="/Ispark">
                     <i class="fas fa-fw fa-map-marked"></i>
                     <span>Ispark Maps</span>
                 </a>
@@ -75,15 +76,15 @@
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
-            
+
             <!-- Heading -->
             <div class="sidebar-heading">
-               Settings
+                Settings
             </div>
 
             <!-- Nav Item - Charts -->
             <li class="nav-item">
-                <a class="nav-link" href="charts.html">
+                <a class="nav-link" href="">
                     <i class="fas fa-fw fa-user"></i>
                     <span>User</span>
                 </a>
@@ -91,7 +92,7 @@
 
             <!-- Nav Item - Tables -->
             <li class="nav-item">
-                <a class="nav-link" href="tables.html">
+                <a class="nav-link" href="">
                     <i class="fas fa-fw fa-user-shield"></i>
                     <span>User Access</span>
                 </a>
@@ -125,7 +126,7 @@
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
-                       
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
@@ -223,13 +224,14 @@
             </div>
         </div>
     </div>
-
+    <script src="~/js/site.js"></script>
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>

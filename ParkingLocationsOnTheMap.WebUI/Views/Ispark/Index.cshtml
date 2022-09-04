@@ -1,8 +1,180 @@
 ﻿
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "New Ispark";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">İspark Park Yeri Verileri</h1>
+    <a id="btnUpdate" class="d-none d-sm-inline-block btn btn-m btn-primary shadow-sm">
+        <i class="fas fa-sync-alt fa-sm shadow-sm"></i> Güncelle
+    </a>
+</div>
 
+<div id="kt_leaflet_3" style="height:450px;"></div>
+
+@section Styles{
+    <link href="~/css/leaflet.bundle.css" rel="stylesheet" />
+}
+
+@section Scripts{
+    <script src="~/js/leaflet.bundle.js"></script>
+    @*<script src="~/js/leaflet.js"></script>*@
+
+
+    <script>
+
+        $(document).ready(function () {
+            GetList();
+
+            var global_selected_id = 0;
+
+            var leaflet = L.map('kt_leaflet_3', {
+                center: [41.106260503564485, 28.93386840820313],
+                zoom: 10
+            });
+
+
+            // Set Geocoding
+            var geocodeService;
+            if (typeof L.esri.Geocoding === 'undefined') {
+                geocodeService = L.esri.geocodeService();
+            } else {
+                geocodeService = L.esri.Geocoding.geocodeService();
+            }
+
+            L.control.scale().addTo(leaflet);
+            // set leaflet tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(leaflet);
+
+            var marker = "";
+
+            function GetList() {
+
+                GosterBeklet();
+
+                $.ajax({
+                    type: 'GET',
+                    url: "/Ispark/MapList",
+                    dataType: "json",
+                    success: function (result) {
+                        console.log(result)
+                        for (var i = 0; i < result.length; i++) {
+
+                            var KTLeaflet = function () {
+
+                                // set custom SVG icon marker
+                                var leafletIconList = L.divIcon({
+                                    html: "<div><i data-id='" + result[i]._id + "'  class='map_item fas fa-2x fa-parking text-primary'></i></div>",
+                                    bgPos: [10, 10],
+                                    iconAnchor: [20, 37],
+                                    popupAnchor: [0, -37],
+                                    className: 'leaflet-marker-list'
+                                });
+
+                                var demo3 = function () {
+
+                                    // bind markers with popup
+                                    L.marker([result[i].longitude, result[i].latitude],
+                                        {
+                                            icon: leafletIconList
+                                        }).addTo(leaflet).bindPopup(
+                                            '<b>' + result[i]._id + ' -</b> ' +
+                                            '<b>Park Adı:</b> ' + result[i].parK_NAME + '<br />' +
+                                            '<b>İlçe:</b> ' + result[i].countY_NAME + '<br />' +
+                                            '<b>Lokasyon:</b> ' + result[i].locatioN_NAME + '<br />' +
+                                            '<b>Park Tipi: </b>' + result[i].parK_TYPE_ID + '<br />' +
+                                            '<b>Kapasite:</b> ' + result[i].locatioN_NAME + '<br />' +
+                                            '<b>Çalışma Saatleri:</b> ' + result[i].workinG_TIME,
+                                            {
+                                                closeButton: false
+                                            });
+
+                                }
+
+                                return {
+                                    // public functions
+                                    init: function () {
+                                        demo3();
+                                    }
+                                };
+
+                            }();
+
+                            KTLeaflet.init();
+
+                        }
+                        GizleBeklet();
+
+                    },
+                    error: function (result) {
+
+                    },
+                    complete: function () {
+                        GizleBeklet();
+                    }
+                });
+            }
+
+            $(document).on("click",
+                '.map_item',
+                function (event) {
+
+                    global_selected_id = $(this).data("id");
+
+                });
+
+
+            $(document).on("click",
+                '#btnUpdate',
+                function (event) {
+                    GosterBeklet();
+                    $.ajax({
+                        type: "POST",
+                        url: "/Ispark/AddUpdate/",
+                        contentType: false,
+                        processData: false,
+                        success: function (response) {
+                            if (response.success) {
+                                swal.fire({
+                                    title: "Başarılı",
+                                    text: response.responseText,
+                                    type: "success",
+
+                                }).then((result) => {
+                                    GetList();
+
+                                });
+                            } else {
+                                swal.fire({
+                                    title: "HATA",
+                                    text: response.responseText,
+                                    type: "error",
+                                    confirmButtonClass: "btn btn-secondary",
+                                });
+                                return;
+                            }
+                        },
+                        error: function (response) {
+                            swal.fire({
+                                title: "HATA",
+                                text: response.responseText,
+                                type: "error",
+                                confirmButtonClass: "btn btn-secondary",
+                                onClose: function () {
+                                }
+
+                            });
+                            return;
+                        }
+                    });
+
+                    GizleBeklet();
+                });
+
+        });
+
+    </script>
+}

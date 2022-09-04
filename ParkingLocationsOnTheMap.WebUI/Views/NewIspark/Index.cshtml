@@ -3,7 +3,39 @@
     ViewData["Title"] = "New Ispark";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+
 <div id="kt_leaflet_3" style="height:450px;"></div>
+
+<div class="modal fade" id="mdlSave" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Recipient:</label>
+                        <input type="text" class="form-control" id="recipient-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="col-form-label">Message:</label>
+                        <textarea class="form-control" id="message-text"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Send message</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Styles{
     <link href="~/css/leaflet.bundle.css" rel="stylesheet" />
@@ -11,11 +43,146 @@
 
 @section Scripts{
     <script src="~/js/leaflet.bundle.js"></script>
-    <script src="~/js/leaflet.js"></script>
+    @*<script src="~/js/leaflet.js"></script>*@
 
 
     <script>
 
+        $(document).ready(function () {
+            GetList();
+
+
+            var global_selected_id = 0;
+
+
+            var leaflet = L.map('kt_leaflet_3', {
+                center: [41.106260503564485, 28.93386840820313],
+                zoom: 10
+            });
+
+
+            // Set Geocoding
+            var geocodeService;
+            if (typeof L.esri.Geocoding === 'undefined') {
+                geocodeService = L.esri.geocodeService();
+            } else {
+                geocodeService = L.esri.Geocoding.geocodeService();
+            }
+
+            // Define Marker Layer
+            var markerLayer = L.layerGroup().addTo(leaflet);
+
+
+            // Set Custom SVG icon marker
+            var leafletIcon = L.divIcon({
+                html: '<div><i data-id="0" <i class="fas fa-2x fa-parking text-danger map_item"></i></div>',
+                bgPos: [0, 0],
+                iconAnchor: [0, 0],
+                popupAnchor: [0, -37],
+                className: 'leaflet-marker'
+            });
+
+            leaflet.on('click', function (e) {
+
+
+                geocodeService.reverse().latlng(e.latlng).run(function (error, result) {
+                    if (error) {
+                        return;
+                    }
+
+
+                    markerLayer.clearLayers(); // remove this line to allow multi-markers on click
+                    L.marker(result.latlng, { icon: leafletIcon }).addTo(markerLayer).bindPopup(result.address.Match_addr, { closeButton: false }).openPopup();
+                    /*alert(`You've clicked on the following address: ${result.address.Match_addr}`);*/
+                    $('#mdlSave').modal('show');
+                    console.log(result.latlng.lat);
+                    console.log(result.latlng.lng);
+
+                });
+
+                console.log()
+
+
+            });
+
+            L.control.scale().addTo(leaflet);
+            // set leaflet tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(leaflet);
+
+            var marker = "";
+
+            function GetList() {
+
+                $.ajax({
+                    type: 'GET',
+                    url: "/NewIspark/MapList",
+                    dataType: "json",
+                    success: function (result) {
+                        console.log(result)
+
+                        for (var i = 0; i < result.length; i++) {
+                            //KTLeaflet();
+                            var KTLeaflet = function () {
+
+                                // set custom SVG icon marker
+                                var leafletIconList = L.divIcon({
+                                    html: "<div><i data-id='" + result[i].id + "'  class='map_item fas fa-2x fa-parking text-primary'></i></div>",
+                                    bgPos: [10, 10],
+                                    iconAnchor: [20, 37],
+                                    popupAnchor: [0, -37],
+                                    className: 'leaflet-marker-list'
+                                });
+
+                                var demo3 = function () {
+                                    // bind markers with popup
+                                    L.marker([result[i].longitude, result[i].latitude],
+                                        {
+                                            icon: leafletIconList
+                                        }).addTo(leaflet).bindPopup(
+                                            '<b>' + result[i].id + ' -</b> ' +
+                                            '<b>Park Adı:</b> ' + result[i].parK_NAME + '<br />' +
+                                            '<b>İlçe:</b> ' + result[i].countY_NAME + '<br />' +
+                                            '<b>Lokasyon:</b> ' + result[i].locatioN_NAME + '<br />' +
+                                            '<b>Park Tipi: </b>' + result[i].parK_TYPE_ID + '<br />' +
+                                            '<b>Kapasite:</b> ' + result[i].capacitY_OF_PARK + '<br />' +
+                                            '<b>Çalışma Saatleri:</b> ' + result[i].workinG_TIME,
+                                            {
+                                                closeButton: false
+                                            });
+                                }
+
+                                return {
+                                    // public functions
+                                    init: function () {
+                                        demo3();
+                                    }
+                                };
+
+                            }();
+
+                            KTLeaflet.init();
+
+                        }
+
+
+                    },
+                    error: function (result) {
+
+                    },
+                    complete: function () {
+                    }
+                });
+            }
+
+            $(document).on("click",
+                '.map_item',
+                function (event) {
+                    global_selected_id = $(this).data("id");
+                });
+
+        });
 
     </script>
 }
