@@ -52,6 +52,35 @@ namespace ParkingLocationsOnTheMap.WebUI.Controllers
             return sonuc;
         }
 
+        [HttpGet]
+        public IActionResult FindByLocation(string id)
+        {
+            //NewIsparkDto newIsparkData = new NewIsparkDto();
+
+            string link = ApiCall.ApiLink + "api/NewIsparkData/" + id;
+
+
+            try
+            {
+                var httpClient = new HttpClient();
+
+                string json = "";
+                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var postTask = httpClient.GetAsync(link);
+                postTask.Wait();
+                var postResult = postTask.Result;
+                var responJsonText = postResult.Content.ReadAsStringAsync().Result;
+
+                var sonuc = (JsonConvert.DeserializeObject<NewIsparkDto>(responJsonText));
+
+                return Json(sonuc);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
 
         [HttpPost]
         public IActionResult SaveLocation(NewIsparkDto newIspark)

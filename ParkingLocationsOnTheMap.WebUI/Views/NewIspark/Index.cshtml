@@ -7,8 +7,8 @@
 
 <div id="kt_leaflet_3" style="height:450px;"></div>
 
-<div class="modal fade" id="mdlSave" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade bd-example-modal-xl" id="mdlSave" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">New message</h5>
@@ -17,20 +17,66 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="frmSave" name="frmSave">
+                    <input id="Id" name="Id" hidden value="" />
+
                     <div class="form-group">
-                        <label for="recipient-name" class="col-form-label">Recipient:</label>
-                        <input type="text" class="form-control" id="recipient-name">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Park Adı:</label>
+                                <input type="text" class="form-control" id="parK_NAME" name="parK_NAME">
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Lokasyon Adı:</label>
+                                <input type="text" class="form-control" id="locatioN_NAME" name="locatioN_NAME">
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="message-text" class="col-form-label">Message:</label>
-                        <textarea class="form-control" id="message-text"></textarea>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Park Tipi:</label>
+                                <input type="text" class="form-control" id="parK_TYPE_ID" name="parK_TYPE_ID">
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Kapasite:</label>
+                                <input type="number" class="form-control" id="capacitY_OF_PARK" name="capacitY_OF_PARK">
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Çalışma Saatleri:</label>
+                                <input type="text" class="form-control" id="workinG_TIME" name="workinG_TIME">
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="col-form-label">İlçe:</label>
+                                <input type="text" class="form-control" id="countY_NAME" name="countY_NAME">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Boylam:</label>
+                                <input type="text" class="form-control" id="Longitude" name="Longitude" readonly="readonly">
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="col-form-label">Enlem:</label>
+                                <input type="text" class="form-control" id="Latitude" name="Latitude" readonly="readonly">
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Send message</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                <button type="button" id="btnSubmit" class="btn btn-primary">Kaydet</button>
             </div>
         </div>
     </div>
@@ -45,15 +91,16 @@
     <script src="~/js/leaflet.bundle.js"></script>
     @*<script src="~/js/leaflet.js"></script>*@
 
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.js"></script>
+
+
 
     <script>
 
         $(document).ready(function () {
             GetList();
 
-
             var global_selected_id = 0;
-
 
             var leaflet = L.map('kt_leaflet_3', {
                 center: [41.106260503564485, 28.93386840820313],
@@ -75,7 +122,7 @@
 
             // Set Custom SVG icon marker
             var leafletIcon = L.divIcon({
-                html: '<div><i data-id="0" <i class="fas fa-2x fa-parking text-danger map_item"></i></div>',
+                html: '<div><i data-id="0" <i class="fas fa-3x fa-map-pin text-danger map_item"></i></div>',
                 bgPos: [0, 0],
                 iconAnchor: [0, 0],
                 popupAnchor: [0, -37],
@@ -90,18 +137,20 @@
                         return;
                     }
 
-
                     markerLayer.clearLayers(); // remove this line to allow multi-markers on click
                     L.marker(result.latlng, { icon: leafletIcon }).addTo(markerLayer).bindPopup(result.address.Match_addr, { closeButton: false }).openPopup();
                     /*alert(`You've clicked on the following address: ${result.address.Match_addr}`);*/
                     $('#mdlSave').modal('show');
-                    console.log(result.latlng.lat);
-                    console.log(result.latlng.lng);
+                    $('#frmSave').trigger("reset");
+                    $('#btnSubmit').removeClass("btnSubmitUpdate");
+                    $('#btnSubmit').addClass("btnSubmitSave");
+                    document.getElementById("parK_NAME").value = result.address.Address;
+                    document.getElementById("locatioN_NAME").value = result.address.LongLabel;
+                    document.getElementById("countY_NAME").value = result.address.City;
+                    document.getElementById("Latitude").value = result.latlng.lng;
+                    document.getElementById("Longitude").value = result.latlng.lat;
 
                 });
-
-                console.log()
-
 
             });
 
@@ -115,13 +164,14 @@
 
             function GetList() {
 
+                $("i").removeClass("fa-map-pin");
+
                 $.ajax({
                     type: 'GET',
                     url: "/NewIspark/MapList",
                     dataType: "json",
                     success: function (result) {
                         console.log(result)
-
                         for (var i = 0; i < result.length; i++) {
                             //KTLeaflet();
                             var KTLeaflet = function () {
@@ -147,7 +197,8 @@
                                             '<b>Lokasyon:</b> ' + result[i].locatioN_NAME + '<br />' +
                                             '<b>Park Tipi: </b>' + result[i].parK_TYPE_ID + '<br />' +
                                             '<b>Kapasite:</b> ' + result[i].capacitY_OF_PARK + '<br />' +
-                                            '<b>Çalışma Saatleri:</b> ' + result[i].workinG_TIME,
+                                            '<b>Çalışma Saatleri:</b> ' + result[i].workinG_TIME + '<br />' +
+                                            '<div class="text-center p-1"><button type="button" class="btnGuncelle btn btn-primary">Güncelle</button></div>',
                                             {
                                                 closeButton: false
                                             });
@@ -181,6 +232,281 @@
                 function (event) {
                     global_selected_id = $(this).data("id");
                 });
+            
+            $(document).on("click",
+                '.btnSubmitSave',
+                function (event) {
+
+                    event.preventDefault(); // avoid to execute the actual submit of the form.
+
+                    // Get form
+                    var form = $('form[name="frmSave"]');
+
+                    form.validate({
+                        rules: {
+                            parK_NAME: {
+                                required: true
+                            },
+                            locatioN_NAME: {
+                                required: true
+                            },
+                            parK_TYPE_ID: {
+                                required: true
+                            },
+                            capacitY_OF_PARK: {
+                                required: true
+                            },
+                            workinG_TIME: {
+                                required: true
+                            },
+                            countY_NAME: {
+                                required: true
+                            },
+                            Longitude: {
+                                required: true
+                            },
+                            Latitude: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            parK_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            locatioN_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            parK_TYPE_ID: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            capacitY_OF_PARK: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            workinG_TIME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            countY_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            Longitude: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            Latitude: {
+                                required:
+                                    'Zorunlu Alan'
+                            }
+                        },
+                    });
+
+                    if (!form.valid()) {
+                        return;
+                    }
+                    // Create an FormData object
+                    var data = new FormData(form[0]);
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/NewIspark/SaveLocation/",
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        contentType: false,
+                        processData: false,
+                        cache: false,
+                        timeout: 600000,
+                        success: function (response) {
+                            GetList();
+                            Swal.fire({
+                                title: "Başarılı",
+                                text: response.responseText,
+                                icon: "success",
+                                type: "success",
+                            }).then((result) => {
+                                $('#mdlSave').modal('hide');
+                                GetList();
+                            });
+
+                        },
+                        error: function (response) {
+
+                            Swal.fire({
+                                title: "Hata",
+                                text: response.responseText,
+                                icon: 'warning',
+                                type: "error",
+                                confirmButtonText: 'Kapat'
+                            });
+                        },
+                        complete: function () {
+                        }
+
+                    });
+                });
+            
+            $(document).on("click",
+                '.btnSubmitUpdate',
+                function (event) {
+
+                    event.preventDefault(); // avoid to execute the actual submit of the form.
+
+                    // Get form
+                    var form = $('form[name="frmSave"]');
+
+                    form.validate({
+                        rules: {
+                            parK_NAME: {
+                                required: true
+                            },
+                            locatioN_NAME: {
+                                required: true
+                            },
+                            parK_TYPE_ID: {
+                                required: true
+                            },
+                            capacitY_OF_PARK: {
+                                required: true
+                            },
+                            workinG_TIME: {
+                                required: true
+                            },
+                            countY_NAME: {
+                                required: true
+                            },
+                            Longitude: {
+                                required: true
+                            },
+                            Latitude: {
+                                required: true
+                            }
+                        },
+                        messages: {
+                            parK_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            locatioN_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            parK_TYPE_ID: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            capacitY_OF_PARK: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            workinG_TIME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            countY_NAME: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            Longitude: {
+                                required:
+                                    'Zorunlu Alan'
+                            },
+                            Latitude: {
+                                required:
+                                    'Zorunlu Alan'
+                            }
+                        },
+                    });
+
+                    if (!form.valid()) {
+                        return;
+                    }
+                    // Create an FormData object
+                    var data = new FormData(form[0]);
+
+                    $.ajax({
+                        type: "PUT",
+                        url: "/NewIspark/UpdateLocation/",
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        contentType: false,
+                        processData: false,
+                        cache: false,
+                        timeout: 600000,
+                        success: function (response) {
+                            GetList();
+                            Swal.fire({
+                                title: "Başarılı",
+                                text: response.responseText,
+                                icon: "success",
+                                type: "success",
+                            }).then((result) => {
+                                $('#mdlSave').modal('hide');
+                                GetList();
+                            });
+
+                        },
+                        error: function (response) {
+
+                            Swal.fire({
+                                title: "Hata",
+                                text: response.responseText,
+                                icon: 'warning',
+                                type: "error",
+                                confirmButtonText: 'Kapat'
+                            });
+                        },
+                        complete: function () {
+                        }
+
+                    });
+                });
+
+            //$("#frmSave").submit(function (e) {
+               
+            //});
+
+            $(document).on("click", '.btnGuncelle',
+                function (event) {
+                    $('#frmSave').trigger("reset");
+                    $('#btnSubmit').addClass("btnSubmitUpdate");
+                    $('#btnSubmit').removeClass("btnSubmitSave");
+
+                    $.ajax({
+                        type: 'GET',
+                        url: "/NewIspark/FindByLocation/" + global_selected_id,
+                        dataType: "json",
+                        success: function (result) {
+                            $('#mdlSave').modal('show');
+                            document.getElementById("Id").value = result.id;
+                            document.getElementById("parK_NAME").value = result.parK_NAME;
+                            document.getElementById("locatioN_NAME").value = result.locatioN_NAME;
+                            document.getElementById("parK_TYPE_ID").value = result.parK_TYPE_ID;
+                            document.getElementById("capacitY_OF_PARK").value = result.capacitY_OF_PARK;
+                            document.getElementById("workinG_TIME").value = result.workinG_TIME;
+                            document.getElementById("countY_NAME").value = result.countY_NAME;
+                            document.getElementById("Longitude").value = result.longitude;
+                            document.getElementById("Latitude").value = result.latitude;
+
+                        },
+                        error: function (response) {
+
+                            Swal.fire({
+                                title: "Uyarı1",
+                                text: response.responseText,
+                                icon: 'warning',
+                                confirmButtonText: 'Kapat',
+                            });
+                        },
+                        complete: function () {
+                            //GizleBeklet();
+                        }
+                    });
+                });
+
 
         });
 
